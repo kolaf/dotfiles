@@ -224,6 +224,36 @@
   loop_control:
     label: "{{ item.name }}"
 
+- name: Clone fzf repository
+  git:
+    repo: 'https://github.com/junegunn/fzf.git'
+    dest: "{{ ansible_user_dir }}/.fzf"
+    depth: 1
+    update: yes
+  become: no
+
+- name: Install fzf binary
+  command: "{{ ansible_user_dir }}/.fzf/install --bin"
+  args:
+    creates: "{{ ansible_user_dir }}/.fzf/bin/fzf"
+  become: no
+
+- name: Symlink fzf binary to local bin
+  file:
+    src: "{{ ansible_user_dir }}/.fzf/bin/fzf"
+    dest: "{{ ansible_user_dir }}/.local/bin/fzf"
+    state: link
+  become: no
+
+- name: Add fzf shell integration to .bashrc
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: "{{ item }}"
+    state: present
+  loop:
+    - 'source "{{ ansible_user_dir }}/.fzf/shell/completion.bash"'
+    - 'source "{{ ansible_user_dir }}/.fzf/shell/key-bindings.bash"'
+
 - name: Clean up old shell integration from .bashrc
   lineinfile:
     path: "{{ ansible_user_dir }}/.bashrc"
@@ -248,7 +278,7 @@
     line: "{{ item }}"
     create: yes
   loop:
-    - 'eval "$(zoxide init bash)"'
+    - 'eval "$(zoxide init bash --cmd cd)"'
     - 'eval "$(starship init bash)"'
     - 'eval "$(atuin init bash)"'
 
