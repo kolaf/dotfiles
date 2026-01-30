@@ -252,3 +252,15 @@
     - 'eval "$(starship init bash)"'
     - 'eval "$(atuin init bash)"'
 
+- name: Add aliases to .bashrc
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: "alias {{ item.name }}='{{ item.value }}'"
+    state: present
+  loop:
+    - { name: 'l', value: 'lsd -l' }
+    - { name: 'la', value: 'lsd -a' }
+    - { name: 'lla', value: 'lsd -la' }
+    - { name: 'lt', value: 'lsd --tree' }
+    - { name: 'ls', value: 'lsd' }
+
