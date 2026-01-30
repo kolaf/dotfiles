@@ -33,7 +33,6 @@ applications_cargo:
   - name: clock-tui
   - name: xh
   - name: atac
-  - name: rainfrog
   - name: presenterm
 
 # Applications to be installed using pip
