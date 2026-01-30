@@ -20,15 +20,26 @@
     update_cache: yes
   become: yes
 
-- name: Add nodesource apt key
-  apt_key:
+- name: Remove old nodesource repository file
+  ansible.builtin.file:
+    path: /etc/apt/sources.list.d/deb_nodesource_com_node_20_x.list
+    state: absent
+  become: yes
+
+- name: Download nodesource apt key
+  ansible.builtin.get_url:
     url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
-    state: present
+    dest: /tmp/nodesource.gpg
+
+- name: Dearmor nodesource apt key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/nodesource.gpg /tmp/nodesource.gpg
+    creates: /usr/share/keyrings/nodesource.gpg
   become: yes
 
 - name: Add nodesource apt repository
-  apt_repository:
-    repo: "deb https://deb.nodesource.com/node_20.x nodistro main"
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main"
     state: present
   become: yes
 
@@ -39,15 +50,20 @@
     update_cache: yes
   become: yes
 
-- name: Add 1Password APT key
-  ansible.builtin.apt_key:
+- name: Download 1Password APT key
+  ansible.builtin.get_url:
     url: https://downloads.1password.com/linux/keys/1password.asc
-    state: present
+    dest: /tmp/1password.asc
+
+- name: Dearmor 1Password APT key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/1password-archive-keyring.gpg /tmp/1password.asc
+    creates: /usr/share/keyrings/1password-archive-keyring.gpg
   become: yes
 
 - name: Add 1Password APT repository
   ansible.builtin.apt_repository:
-    repo: "deb [arch={{ ansible_architecture }} signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/{{ ansible_architecture }} stable main"
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main"
     state: present
   become: yes
 
@@ -60,9 +76,22 @@
 
 - name: Add debsig-verify policy for 1Password
   ansible.builtin.get_url:
-    url: https://downloads.1password.com/linux/debsig/1password.pol
+    url: https://downloads.1password.com/linux/debian/debsig/1password.pol
     dest: /etc/debsig/policies/AC2D62742012EA22/1password.pol
     mode: '0644'
+  become: yes
+
+- name: Ensure debsig keyring directory exists for 1Password
+  ansible.builtin.file:
+    path: /usr/share/debsig/keyrings/AC2D62742012EA22
+    state: directory
+    mode: '0755'
+  become: yes
+
+- name: Add debsig keyring for 1Password
+  ansible.builtin.command:
+    cmd: gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg /tmp/1password.asc
+    creates: /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
   become: yes
 
 - name: Check if rustup is installed
@@ -97,6 +126,16 @@
     install lazygit -D -t /usr/local/bin/
   args:
     creates: /usr/local/bin/lazygit
+  become: yes
+
+- name: Install lazydocker
+  shell: |
+    LAZYDOCKER_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazydocker/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
+    curl -Lo lazydocker.tar.gz "https://github.com/jesseduffield/lazydocker/releases/download/v${LAZYDOCKER_VERSION}/lazydocker_${LAZYDOCKER_VERSION}_Linux_x86_64.tar.gz"
+    tar xf lazydocker.tar.gz lazydocker
+    install lazydocker -D -t /usr/local/bin/
+  args:
+    creates: /usr/local/bin/lazydocker
   become: yes
 
 - name: Install applications with apt
@@ -185,7 +224,23 @@
   loop_control:
     label: "{{ item.name }}"
 
+- name: Clean up old shell integration from .bashrc
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: "{{ item }}"
+    state: absent
+  loop:
+    - 'eval $(thefuck --alias)'
+    - 'eval "$(zoxide init bash)"'
+    - 'eval "$(starship init bash)"'
+    - 'eval "$(atuin init bash)"'
 
+- name: Ensure .local/bin is in PATH in .bashrc
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: 'export PATH="$HOME/.local/bin:$PATH"'
+    state: present
+    create: yes
 
 - name: Add shell integration to .bashrc
   lineinfile:
@@ -196,5 +251,4 @@
     - 'eval "$(zoxide init bash)"'
     - 'eval "$(starship init bash)"'
     - 'eval "$(atuin init bash)"'
-    - 'eval $(thefuck --alias)'
 

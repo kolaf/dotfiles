@@ -38,7 +38,7 @@ applications_cargo:
 # Applications to be installed using pip
 applications_pip:
   - ducker
-  - thefuck
+  # - thefuck # Incompatible with Python 3.12 (imp module removed)
 
 # Applications to be installed using npm
 applications_npm:
@@ -48,8 +48,8 @@ applications_npm:
 
 # Applications to be installed using go
 applications_go:
-  - name: github.com/jesseduffield/lazydocker@latest
-    binary_name: lazydocker
+  # - name: github.com/jesseduffield/lazydocker@latest
+  #   binary_name: lazydocker
   - name: github.com/charmbracelet/freeze@latest
     binary_name: freeze
   - name: github.com/charmbracelet/vhs@latest
