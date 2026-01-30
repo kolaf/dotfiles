@@ -1,0 +1,169 @@
+---
+# tasks file for terminal_applications
+
+- name: Ensure .local/bin exists
+  file:
+    path: "{{ ansible_user_dir }}/.local/bin"
+    state: directory
+    mode: '0755'
+
+- name: Update apt cache and install prerequisites
+  apt:
+    name:
+      - build-essential
+      - python3-pip
+      - golang
+      - software-properties-common
+      - curl
+      - git
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Add nodesource apt key
+  apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key
+    state: present
+  become: yes
+
+- name: Add nodesource apt repository
+  apt_repository:
+    repo: "deb https://deb.nodesource.com/node_20.x nodistro main"
+    state: present
+  become: yes
+
+- name: Install nodejs
+  apt:
+    name: nodejs
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Check if rustup is installed
+  stat:
+    path: "{{ ansible_user_dir }}/.cargo/bin/rustup"
+  register: rustup_stat
+  become: no
+
+- name: Install Rust (rustup)
+  shell: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  when: not rustup_stat.stat.exists
+  args:
+    creates: "{{ ansible_user_dir }}/.cargo/bin/rustc"
+  become: no
+
+- name: Update Rust
+  command: "{{ ansible_user_dir }}/.cargo/bin/rustup update"
+  when: rustup_stat.stat.exists
+  become: no
+
+- name: Add cargo to PATH for subsequent tasks
+  set_fact:
+    ansible_env:
+      PATH: "{{ ansible_user_dir }}/.cargo/bin:{{ ansible_env.PATH }}"
+  become: no
+
+- name: Install lazygit
+  shell: |
+    LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/download/v${LAZYGIT_VERSION}/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tar xf lazygit.tar.gz lazygit
+    install lazygit -D -t /usr/local/bin/
+  args:
+    creates: /usr/local/bin/lazygit
+  become: yes
+
+- name: Install applications with apt
+  apt:
+    name: "{{ item.name | default(item) }}"
+    state: present
+  loop: "{{ applications_apt }}"
+  loop_control:
+    label: "{{ item.name | default(item) }}"
+  become: yes
+
+- name: Create symlinks for apt packages
+  file:
+    src: "/usr/bin/{{ item.symlink }}"
+    dest: "{{ ansible_user_dir }}/.local/bin/{{ item.symlink_name }}"
+    state: link
+  loop: "{{ applications_apt }}"
+  when: item.symlink is defined
+  loop_control:
+    label: "symlink for {{ item.name | default(item) }}"
+
+- name: Install applications with cargo
+  command: >
+    {{ ansible_user_dir }}/.cargo/bin/cargo install 
+    {{ item.name | default(item) }}
+    {{ item.args | default('') }}
+  args:
+    creates: "{{ ansible_user_dir }}/.cargo/bin/{{ item.binary_name | default(item.name | default(item)) }}"
+  loop: "{{ applications_cargo }}"
+  loop_control:
+    label: "{{ item.name | default(item) }}"
+  become: no
+
+- name: Install applications with pip
+  pip:
+    name: "{{ item }}"
+    extra_args: --break-system-packages
+  loop: "{{ applications_pip }}"
+  loop_control:
+    label: "{{ item }}"
+
+- name: Install applications with npm
+  npm:
+    name: "{{ item }}"
+    global: yes
+  loop: "{{ applications_npm }}"
+  loop_control:
+    label: "{{ item }}"
+  become: yes
+
+- name: Set Go environment variables
+  set_fact:
+    gopath: "{{ ansible_user_dir }}/go"
+    go_bin: "{{ ansible_user_dir }}/go/bin"
+
+- name: Add go to PATH for subsequent tasks
+  set_fact:
+    ansible_env:
+      PATH: "{{ go_bin }}:{{ ansible_env.PATH }}"
+
+- name: Create go directories
+  file:
+    path: "{{ item }}"
+    state: directory
+  loop:
+    - "{{ gopath }}"
+    - "{{ go_bin }}"
+
+- name: Install applications with go
+  command: go install {{ item.name }}
+  args:
+    creates: "{{ go_bin }}/{{ item.binary_name }}"
+  loop: "{{ applications_go }}"
+  loop_control:
+    label: "{{ item.name }}"
+  environment:
+    GOPATH: "{{ gopath }}"
+
+- name: Install applications with scripts
+  shell: "curl -sSfL {{ item.url }} | {{ item.installer | default('sh') }} {{ item.args | default('') }}"
+  args:
+    creates: "{{ ansible_user_dir }}/.local/bin/{{ item.name }}"
+  loop: "{{ applications_script }}"
+  environment:
+    CI: "true"
+  loop_control:
+    label: "{{ item.name }}"
+
+- name: Install applications manually
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ item.dest }}"
+    mode: '0755'
+  loop: "{{ applications_manual }}"
+  loop_control:
+    label: "{{ item.name }}"

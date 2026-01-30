@@ -1,0 +1,76 @@
+---
+# defaults file for terminal_applications
+
+# Applications to be installed using apt
+applications_apt:
+  - name: lsd
+  # - name: exa
+  - name: fd-find
+    symlink: fdfind
+    symlink_name: fd
+  - name: ripgrep
+  - name: bat
+    symlink: batcat
+    symlink_name: bat
+  - name: btop
+  - name: dtrx
+  - name: tig
+
+# Applications to be installed using cargo
+applications_cargo:
+  - name: repgrep
+  - name: tailspin
+  - name: dua-cli
+  - name: du-dust
+    binary_name: dust
+  - name: tokei
+  - name: zellij
+    args: --locked
+  - name: tealdeer
+    binary_name: tldr
+  - name: clac
+  - name: clock-tui
+  - name: xh
+  - name: atac
+  - name: rainfrog
+  - name: glim
+  - name: presenterm
+  - name: plastic-core
+
+# Applications to be installed using pip
+applications_pip:
+  - ducker
+  - thefuck
+
+# Applications to be installed using npm
+applications_npm:
+  - "@google/gemini-cli"
+  - "@continuedev/cli"
+  - "@continuedev/cli"
+
+# Applications to be installed using go
+applications_go:
+  - name: github.com/jesseduffield/lazydocker@latest
+    binary_name: lazydocker
+  - name: github.com/charmbracelet/freeze@latest
+    binary_name: freeze
+  - name: github.com/charmbracelet/vhs@latest
+    binary_name: vhs
+
+# Applications to be installed using shell scripts
+applications_script:
+  - name: starship
+    url: https://starship.rs/install.sh
+    args: -s -- -y -b {{ ansible_user_dir }}/.local/bin
+  - name: zoxide
+    url: https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh
+    installer: bash
+  - name: atuin
+    url: https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh
+    installer: bash
+
+# Applications to be installed manually
+applications_manual:
+  - name: rip
+    url: https://raw.githubusercontent.com/cesarferreira/rip/main/rip.sh
+    dest: "{{ ansible_user_dir }}/.local/bin/rip"
