@@ -33,9 +33,7 @@ applications_cargo:
   - name: xh
   - name: atac
   - name: rainfrog
-  - name: glim
   - name: presenterm
-  - name: plastic-core
 
 # Applications to be installed using pip
 applications_pip:

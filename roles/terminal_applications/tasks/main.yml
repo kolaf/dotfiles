@@ -159,11 +159,16 @@
   loop_control:
     label: "{{ item.name }}"
 
-- name: Install applications manually
-  get_url:
-    url: "{{ item.url }}"
-    dest: "{{ item.dest }}"
-    mode: '0755'
-  loop: "{{ applications_manual }}"
-  loop_control:
-    label: "{{ item.name }}"
+
+
+- name: Add shell integration to .bashrc
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: "{{ item }}"
+    create: yes
+  loop:
+    - 'eval "$(zoxide init bash)"'
+    - 'eval "$(starship init bash)"'
+    - 'eval "$(atuin init bash)"'
+    - 'eval $(thefuck --alias)'
+
