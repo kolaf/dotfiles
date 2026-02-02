@@ -9,35 +9,96 @@ This Ansible setup installs a collection of useful terminal applications on a WS
 
 ## How to Run
 
-1.  Navigate to the `ansible` directory.
-2.  Run the playbook:
+1. Navigate to the `ansible` directory.
+2. Run the playbook locally:
 
-    ```bash
-    ansible-playbook -i inventory playbook.yml
-    ```
+   ```bash
+   ansible-playbook -i localhost, -c local playbook.yml
+   ```
 
-    The playbook will run on your localhost and connect to it directly, so it will provision the machine you are running the command from. Make sure you run this inside your WSL Ubuntu instance.
+   This provisions the machine you run the command on (your WSL Ubuntu instance).
 
 ## What it does
 
 The playbook performs the following actions:
 
-1.  Installs prerequisite packages like `build-essential`, `python3-pip`, `golang`, `curl`, and `git`.
-2.  Installs Rust via `rustup`.
-3.  Installs applications from various sources:
-    -   `apt` package manager (including adding a PPA for `lazygit`).
-    -   `cargo` (Rust's package manager).
-    -   `pip` (Python's package manager).
-    -   `go install`.
-    -   Custom installation scripts.
-    -   Manual download.
-4.  Creates necessary symlinks for tools like `fd` (as `fdfind`) and `bat` (as `batcat`).
+1. Installs prerequisite packages like `build-essential`, `python3-pip`, `golang`, `curl`, and `git`.
+2. Installs Node.js (NodeSource repo) and configures the APT repo for 1Password CLI.
+3. Installs Rust via `rustup`.
+4. Installs additional tools:
+   - Downloads and installs `lazygit` and `lazydocker` to `/usr/local/bin`.
+   - Installs applications from `apt`, `cargo`, `pip`, `npm`, `go install`, and shell-script/manual installers.
+5. Creates symlinks for tools like `fd` (from `fdfind`) and `bat` (from `batcat`) into `~/.local/bin`.
+6. Installs `fzf` (from git) and wires up shell integration and aliases in `~/.bashrc`.
 
 ## Installed Applications
 
-The list of applications to be installed is defined in `roles/terminal_applications/defaults/main.yml`. You can customize this list to add or remove applications.
+The exact lists are defined in `roles/terminal_applications/defaults/main.yml`.
 
-### Shell profile
+### Installed via APT
 
-Note that some installers (like for `zoxide` and `atuin`) might want to modify your shell's startup files (e.g., `.bashrc`, `.zshrc`) to be fully integrated. The playbook runs them in a non-interactive mode (`CI=true`), which should prevent this. You may need to add initialization logic to your shell's config file manually for these tools. For example, for zoxide, you would add `eval "$(zoxide init bash)"` to your `.bashrc`.
-# dotfiles
+- lsd
+- fd-find (symlinked as `fd`)
+- ripgrep
+- bat (symlinked as `bat` from `batcat`)
+- btop
+- dtrx
+- tig
+- 1password-cli
+- nodejs
+
+### Installed via Cargo
+
+- repgrep
+- tailspin
+- dua-cli
+- du-dust (binary `dust`)
+- tokei
+- zellij
+- tealdeer (binary `tldr`)
+- clac
+- clock-tui
+- xh
+- atac
+- presenterm
+- ducker
+
+### Installed via npm (global)
+
+- @google/gemini-cli
+- @continuedev/cli
+
+### Installed via Go
+
+- freeze
+- vhs
+
+### Installed via shell scripts
+
+- starship
+- zoxide
+- atuin
+
+### Installed manually
+
+- rip
+
+### Installed from GitHub releases
+
+- lazygit
+- lazydocker
+
+### Installed from git source
+
+- fzf
+
+### Shell profile changes
+
+This role *does* modify `~/.bashrc` to enable integrations:
+
+- fzf completion + keybindings
+- `eval "$(zoxide init bash)"`
+- `eval "$(starship init bash)"`
+- `eval "$(atuin init bash)"`
+- `~/.local/bin` is added to `PATH`
+- aliases: `l`, `la`, `lla`, `lt`, and `ls` -> `lsd`

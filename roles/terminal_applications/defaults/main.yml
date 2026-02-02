@@ -34,10 +34,12 @@ applications_cargo:
   - name: xh
   - name: atac
   - name: presenterm
+  - name: ducker
+    args: --locked
 
 # Applications to be installed using pip
-applications_pip:
-  - ducker
+applications_pip: []
+  # - ducker
   # - thefuck # Incompatible with Python 3.12 (imp module removed)
 
 # Applications to be installed using npm

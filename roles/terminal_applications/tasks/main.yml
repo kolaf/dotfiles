@@ -262,6 +262,7 @@
   loop:
     - 'eval $(thefuck --alias)'
     - 'eval "$(zoxide init bash)"'
+    - 'eval "$(zoxide init bash --cmd cd)"'
     - 'eval "$(starship init bash)"'
     - 'eval "$(atuin init bash)"'
 
@@ -278,7 +279,7 @@
     line: "{{ item }}"
     create: yes
   loop:
-    - 'eval "$(zoxide init bash --cmd cd)"'
+    - 'eval "$(zoxide init bash)"'
     - 'eval "$(starship init bash)"'
     - 'eval "$(atuin init bash)"'
 
