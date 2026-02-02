@@ -15,7 +15,6 @@ applications_apt:
   - name: btop
   - name: dtrx
   - name: tig
-  - name: 1password-cli
 
 # Applications to be installed using cargo
 applications_cargo:
