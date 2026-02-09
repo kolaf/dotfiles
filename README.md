@@ -7,6 +7,12 @@ This Ansible setup installs a collection of useful terminal applications on a WS
 - Ansible installed on your local machine.
 - WSL Ubuntu instance.
 
+### Fonts  
+
+Nerd fonts need to be installed in windows to get glyphs to work. Can be downloaded from https://www.nerdfonts.com/font-downloads, e.g. https://github.com/ryanoasis/nerd-fonts/releases/download/v3.4.0/Hack.zip
+
+Install font (probably monospace version), and change font in windows terminal app.
+
 ## How to Run
 
 1. Navigate to the `ansible` directory.
