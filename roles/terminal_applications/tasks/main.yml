@@ -138,6 +138,21 @@
     creates: /usr/local/bin/lazydocker
   become: yes
 
+- name: Download pandoc .deb
+  ansible.builtin.get_url:
+    url: "{{ pandoc_deb_url }}"
+    dest: "{{ pandoc_deb_dest }}"
+    mode: '0644'
+  become: yes
+  when: install_pandoc | bool
+
+- name: Install pandoc from .deb
+  ansible.builtin.apt:
+    deb: "{{ pandoc_deb_dest }}"
+    state: present
+  become: yes
+  when: install_pandoc | bool
+
 - name: Install applications with apt
   apt:
     name: "{{ item.name | default(item) }}"

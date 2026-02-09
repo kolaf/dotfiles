@@ -1,6 +1,11 @@
 ---
 # defaults file for terminal_applications
 
+# Optional installs
+install_pandoc: false
+pandoc_deb_url: "https://github.com/jgm/pandoc/releases/download/3.9/pandoc-3.9-1-amd64.deb"
+pandoc_deb_dest: "/tmp/pandoc-3.9-1-amd64.deb"
+
 # Applications to be installed using apt
 applications_apt:
   - name: lsd
@@ -15,6 +20,12 @@ applications_apt:
   - name: btop
   - name: dtrx
   - name: tig
+  # - name: texlive-latex-base
+  # - name: texlive-fonts-recommended
+  # - name: texlive-fonts-extra
+  # - name: texlive-latex-extra
+  # - name: pandoc-plantuml-filter
+  - name: graphviz
 
 # Applications to be installed using cargo
 applications_cargo:
