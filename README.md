@@ -13,6 +13,13 @@ Nerd fonts need to be installed in windows to get glyphs to work. Can be downloa
 
 Install font (probably monospace version), and change font in windows terminal app.
 
+### Optional Installations
+
+To install optional components, you can override the default variables in `roles/terminal_applications/defaults/main.yml` or pass them as extra vars.
+
+- `install_pandoc`: Set to `true` to install Pandoc from a .deb file (default: `false`).
+- `install_gcloud`: Set to `true` to install Google Cloud CLI and the GKE auth plugin (default: `false`).
+
 ## How to Run
 
 1. Navigate to the `ansible` directory.
@@ -20,6 +27,12 @@ Install font (probably monospace version), and change font in windows terminal a
 
    ```bash
    ansible-playbook -i localhost, -c local playbook.yml
+   ```
+
+   To install optional components:
+
+   ```bash
+   ansible-playbook -i localhost, -c local playbook.yml -e "install_gcloud=true"
    ```
 
    This provisions the machine you run the command on (your WSL Ubuntu instance).
@@ -52,6 +65,8 @@ The exact lists are defined in `roles/terminal_applications/defaults/main.yml`.
 - tig
 - 1password-cli
 - nodejs
+- kubectl
+- helm
 
 ### Installed via Cargo
 
@@ -93,6 +108,7 @@ The exact lists are defined in `roles/terminal_applications/defaults/main.yml`.
 
 - lazygit
 - lazydocker
+- k9s
 
 ### Installed from git source
 

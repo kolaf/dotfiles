@@ -94,6 +94,40 @@
     creates: /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
   become: yes
 
+- name: Download Kubernetes APT key
+  ansible.builtin.get_url:
+    url: https://pkgs.k8s.io/core:/stable:/v1.32/deb/Release.key
+    dest: /tmp/kubernetes.key.asc
+
+- name: Dearmor Kubernetes APT key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg /tmp/kubernetes.key.asc
+    creates: /usr/share/keyrings/kubernetes-archive-keyring.gpg
+  become: yes
+
+- name: Add Kubernetes APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.32/deb/ /"
+    state: present
+  become: yes
+
+- name: Download Helm APT key
+  ansible.builtin.get_url:
+    url: https://packages.buildkite.com/helm-linux/helm-debian/gpgkey
+    dest: /tmp/helm.asc
+
+- name: Dearmor Helm APT key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/helm.gpg /tmp/helm.asc
+    creates: /usr/share/keyrings/helm.gpg
+  become: yes
+
+- name: Add Helm APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/usr/share/keyrings/helm.gpg] https://packages.buildkite.com/helm-linux/helm-debian/any/ any main"
+    state: present
+  become: yes
+
 - name: Check if rustup is installed
   stat:
     path: "{{ ansible_user_dir }}/.cargo/bin/rustup"
@@ -138,6 +172,16 @@
     creates: /usr/local/bin/lazydocker
   become: yes
 
+- name: Install k9s
+  shell: |
+    K9S_VERSION=$(curl -s "https://api.github.com/repos/derailed/k9s/releases/latest" | \grep -Po '"tag_name": *"v\K[^"]*')
+    curl -Lo k9s.tar.gz "https://github.com/derailed/k9s/releases/download/v${K9S_VERSION}/k9s_Linux_amd64.tar.gz"
+    tar xf k9s.tar.gz k9s
+    install k9s -D -t /usr/local/bin/
+  args:
+    creates: /usr/local/bin/k9s
+  become: yes
+
 - name: Download pandoc .deb
   ansible.builtin.get_url:
     url: "{{ pandoc_deb_url }}"
@@ -152,6 +196,37 @@
     state: present
   become: yes
   when: install_pandoc | bool
+
+- name: Download Google Cloud public signing key
+  ansible.builtin.get_url:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    dest: /tmp/google-cloud.gpg
+  when: install_gcloud | bool
+
+- name: Dearmor Google Cloud public signing key
+  ansible.builtin.command:
+    cmd: gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg /tmp/google-cloud.gpg
+    creates: /usr/share/keyrings/cloud.google.gpg
+  become: yes
+  when: install_gcloud | bool
+
+- name: Add Google Cloud SDK APT repository
+  ansible.builtin.apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main"
+    state: present
+    filename: google-cloud-sdk
+  become: yes
+  when: install_gcloud | bool
+
+- name: Install Google Cloud CLI and components
+  ansible.builtin.apt:
+    name:
+      - google-cloud-cli
+      - google-cloud-cli-gke-gcloud-auth-plugin
+    state: present
+    update_cache: yes
+  become: yes
+  when: install_gcloud | bool
 
 - name: Install applications with apt
   apt:

@@ -6,6 +6,8 @@ install_pandoc: false
 pandoc_deb_url: "https://github.com/jgm/pandoc/releases/download/3.9/pandoc-3.9-1-amd64.deb"
 pandoc_deb_dest: "/tmp/pandoc-3.9-1-amd64.deb"
 
+install_gcloud: true
+
 # Applications to be installed using apt
 applications_apt:
   - name: lsd
@@ -26,6 +28,8 @@ applications_apt:
   # - name: texlive-latex-extra
   # - name: pandoc-plantuml-filter
   - name: graphviz
+  - name: kubectl
+  - name: helm
 
 # Applications to be installed using cargo
 applications_cargo:
