@@ -6,6 +6,9 @@ install_pandoc: false
 pandoc_deb_url: "https://github.com/jgm/pandoc/releases/download/3.9/pandoc-3.9-1-amd64.deb"
 pandoc_deb_dest: "/tmp/pandoc-3.9-1-amd64.deb"
 
+tirith_deb_url: "https://github.com/sheeki03/tirith/releases/download/v0.1.9/tirith_0.1.9_amd64.deb"
+tirith_deb_dest: "/tmp/tirith_0.1.9_amd64.deb"
+
 install_gcloud: true
 
 # Applications to be installed using apt
@@ -50,6 +53,8 @@ applications_cargo:
   - name: presenterm
   - name: ducker
     args: --locked
+  - name: uv
+    binary_name: uv
 
 # Applications to be installed using pip
 applications_pip: []
@@ -82,6 +87,10 @@ applications_script:
   - name: atuin
     url: https://raw.githubusercontent.com/atuinsh/atuin/main/install.sh
     installer: bash
+  - name: uv
+    url: https://astral.sh/uv/install.sh
+    installer: bash
+    args: "-- -y -b {{ ansible_user_dir }}/.local/bin"
 
 # Applications to be installed manually
 applications_manual:

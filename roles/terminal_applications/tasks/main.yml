@@ -304,6 +304,19 @@
   environment:
     GOPATH: "{{ gopath }}"
 
+- name: Download Tirith .deb
+  ansible.builtin.get_url:
+    url: "{{ tirith_deb_url }}"
+    dest: "{{ tirith_deb_dest }}"
+    mode: '0644'
+  become: yes
+
+- name: Install Tirith .deb
+  ansible.builtin.apt:
+    deb: "{{ tirith_deb_dest }}"
+    state: present
+  become: yes
+
 - name: Install applications with scripts
   shell: "curl -sSfL {{ item.url }} | {{ item.installer | default('sh') }} {{ item.args | default('') }}"
   args:
@@ -372,6 +385,13 @@
     - 'eval "$(zoxide init bash)"'
     - 'eval "$(starship init bash)"'
     - 'eval "$(atuin init bash)"'
+
+- name: Ensure Tirith bash integration is present in .bashrc
+  lineinfile:
+    path: "{{ ansible_user_dir }}/.bashrc"
+    line: 'eval "$(tirith init --shell bash)"'
+    state: present
+    create: yes
 
 - name: Add aliases to .bashrc
   lineinfile:
